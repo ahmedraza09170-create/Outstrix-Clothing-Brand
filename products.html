@@ -1,863 +1,1076 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OutStrix - Products (with Slide Cart & Checkout)</title>
 
-    <meta name="description" content="">
-    <meta name="author" content="">
+  <!-- Keep your original resources if available -->
+  <link rel="icon" type="icon" href="images/Outstrix-final-logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700;900&display=swap" rel="stylesheet">
+  <link href="css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/slick.css" />
+  <link href="css/outstrix.css" rel="stylesheet">
 
-    <title>OutStrix - product page</title>
+  <style>
+    /* --- Slide Cart & Checkout Styles --- */
+    :root { --accent: #198754; --muted: #6c757d; --bg: #f8f9fa; }
+    body { font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #fff; }
 
-    <!-- CSS FILES -->
-    <link rel="icon" type="icon" href="images/Outstrix-final-logo.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    /* Cart button in top-right */
+    .cart-fab {
+      position: fixed;
+      right: 20px;
+      bottom: 30px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 999px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      z-index: 1200;
+      cursor: pointer;
+    }
+    .cart-count {
+      background: #fff;
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-weight: 700;
+      font-size: 13px;
+    }
 
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    /* Drawer */
+    .cart-drawer {
+      position: fixed;
+      right: -520px;
+      top: 0;
+      height: 100vh;
+      width: 420px;
+      max-width: 95%;
+      background: #fff;
+      box-shadow: -8px 0 30px rgba(0,0,0,0.12);
+      transition: right .35s ease;
+      z-index: 1300;
+      display: flex;
+      flex-direction: column;
+    }
+    .cart-drawer.open { right: 0; }
+    .cart-header {
+      padding: 18px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cart-body {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .cart-footer {
+      padding: 16px;
+      border-top: 1px solid #eee;
+    }
+    .cart-item {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+    .cart-item img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; }
+    .cart-item .meta { flex: 1; }
+    .cart-item .meta h6 { margin: 0 0 6px; font-size: 14px; }
+    .cart-item .meta small { color: var(--muted); display: block; }
+    .qty-controls { display: flex; gap: 6px; align-items: center; }
+    .qty-controls button { padding: 4px 8px; background:#f1f1f1; border: none; border-radius: 6px; cursor: pointer; }
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;700;900&display=swap" rel="stylesheet">
+    .btn-primary, .btn-success { background: var(--accent); border: none; }
+    .small-muted { color: var(--muted); font-size: 13px; }
 
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/bootstrap-icons.css" rel="stylesheet">
+    /* Checkout steps */
+    .step { display: none; }
+    .step.active { display: block; }
+    .field { margin-bottom: 10px; }
+    .field input, .field textarea, .field select { width: 100%; padding: 8px 10px; border:1px solid #ddd; border-radius:6px; }
 
-    <link rel="stylesheet" href="css/slick.css" />
+    /* Empty state */
+    .empty { text-align: center; padding: 40px 10px; color: var(--muted); }
 
-    <link href="css/outstrix.css" rel="stylesheet">
-
+    /* Mobile small adjustments */
+    @media (max-width: 600px) {
+      .cart-drawer { width: 100%; right: -100%; }
+      .cart-drawer.open { right: 0; }
+      .cart-fab { right: 12px; bottom: 16px; padding: 10px 12px; }
+    }
+  </style>
 </head>
-
 <body>
 
-    <section class="preloader">
-        <div class="spinner">
-            <span class="sk-inner-circle"></span>
+  <!-- -------------------------
+       Your original navbar (kept)
+  --------------------------->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><strong><span>Out</span>Strix</strong></a>
+      <div class="d-none d-lg-block ms-auto">
+        <!-- cart button also shown in header for large screens -->
+        <button id="openCartHeader" class="btn btn-outline-secondary">
+          <i class="bi bi-bag"></i> Cart <span id="headerCount" class="cart-count" style="margin-left:8px">0</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HEADER SECTION (kept) -->
+  <header class="site-header section-padding d-flex justify-content-center align-items-center">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 col-12">
+          <h1><span class="d-block text-primary">Choose your</span><span class="d-block text-dark">favorite stuffs</span></h1>
         </div>
-    </section>
-
-    <main>
-
-        <nav class="navbar navbar-expand-lg">
-            <div class="container">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <a class="navbar-brand" href="index.html">
-                    <strong><span>Out</span>Strix</strong>
-                </a>
-
-                <div class="d-lg-none">
-                    <a href="sign-in.html" class="bi-person custom-icon me-3"></a>
-
-                    <a href="product-detail.html" class="bi-bag custom-icon"></a>
-                </div>
-
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav mx-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="index.html">Home</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="about.html">Story</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link active" href="products.html">Products</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="faq.html">FAQs</a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="contact.html">Contact</a>
-                        </li>
-                    </ul>
-
-                    <div class="d-none d-lg-block">
-                        <a href="sign-in.html" class="bi-person custom-icon me-3"></a>
-
-                        <a href="sign-up.html" class="bi-bag custom-icon"></a>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <header class="site-header section-padding d-flex justify-content-center align-items-center">
-            <div class="container">
-                <div class="row">
-
-                    <div class="col-lg-10 col-12">
-                        <h1>
-                            <span class="d-block text-primary">Choose your</span>
-                            <span class="d-block text-dark">favorite stuffs</span>
-                        </h1>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <section class="products section-padding">
-            <div class="container">
-                <div class="row">
-
-                    <div class="col-12">
-                        <h2 class="mb-5">New Arrivals</h2>
-                        <!-- <p >Take Screenshot and send on whatsapp</p> -->
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/newArrival/product-1.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <span class="product-alert me-auto">Discounted Price</span>
-
-                                <a href="#" class="bi-heart-fill product-icon"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Outstrix Black-White Tee</a>
-                                    </h5>
-
-                                    <p class="product-p">Classic two-tone style for everyday wear.</p>
-
-                                    <small class="product-price text-muted ms-auto">Rs:1599</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/newArrival/product-2.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <span class="product-alert">Discounted Price</span>
-
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Brown Oversized Tee</a>
-                                    </h5>
-
-                                    <p class="product-p">Soft, warm tone with relaxed comfort.</p>
-                                    <small class="product-price text-muted ms-auto">1399</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/newArrival/product-3.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <span class="product-alert me-auto">Discounted Price</span>
-
-                                <a href="#" class="bi-heart-fill product-icon"></a>
-                            </div>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Core Minimal Drop</a>
-                                    </h5>
-
-                                    <p class="product-p">Essential minimal piece for any outfit.</p>
-
-                                    <small class="product-price text-muted ms-auto">1199</small>
-
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/newArrival/product-4.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <span class="product-alert me-auto">Discounted Price</span>
-
-                                <a href="#" class="bi-heart-fill product-icon"></a>
-                            </div>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Checked Layer Tee</a>
-                                    </h5>
-
-                                    <p class="product-p">Street-inspired look with inner-shirt style.</p>
-
-                                    <small class="product-price text-muted ms-auto">Rs:1599</small>
-
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/newArrival/product-5.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <span class="product-alert me-auto">Discounted Price</span>
-
-                                <a href="#" class="bi-heart-fill product-icon"></a>
-                            </div>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Olive Drop Tee</a>
-                                    </h5>
-
-                                    <p class="product-p">Casual outdoor vibe with layered sleeves.</p>
-
-                                    <small class="product-price text-muted ms-auto">Rs:1299</small>
-
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/newArrival/product-6.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <span class="product-alert me-auto">Discounted Price</span>
-
-                                <a href="#" class="bi-heart-fill product-icon"></a>
-                            </div>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Sky Blue Tee</a>
-                                    </h5>
-
-                                    <p class="product-p">Cool and calm shade for a fresh look.</p>
-
-                                    <small class="product-price text-muted ms-auto">1099</small>
-
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <h2 class="mb-5">Popular</h2>
-                        <!-- <p>Take Screenshot and send on whatsapp</p> -->
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/popular/product-1.jpg" class="img-fluid product-image"
-                                    alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">New Style</a>
-                                    </h5>
-
-                                    <p class="product-p">Original package design from house</p>
-                                    <small class="product-price text-muted ms-auto">Rs:1199</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/popular/product-2.jpg" class="img-fluid product-image"
-                                    alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">New Style</a>
-                                    </h5>
-
-                                    <p class="product-p">Original package design from house</p>
-                                    <small class="product-price text-muted ms-auto">Rs:1099</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/popular/product-3.jpg" class="img-fluid product-image"
-                                    alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">New Style</a>
-                                    </h5>
-
-                                    <p class="product-p">Original package design from house</p>
-                                    <small class="product-price text-muted ms-auto">Rs:1599</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/popular/product-4.jpg" class="img-fluid product-image"
-                                    alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">New Style</a>
-                                    </h5>
-
-                                    <p class="product-p">Original package design from house</p>
-                                    <small class="product-price text-muted ms-auto">Rs:1499</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/popular/product-5.jpg" class="img-fluid product-image"
-                                    alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">New Style</a>
-                                    </h5>
-
-                                    <p class="product-p">Original package design from house</p>
-                                    <small class="product-price text-muted ms-auto">Rs:1799</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="   ">
-                                <img src="Brand Images/products/popular/product-6.jpg" class="img-fluid product-image"
-                                    alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">New Style</a>
-                                    </h5>
-
-                                    <p class="product-p">Original package design from house</p>
-                                    <small class="product-price text-muted ms-auto">Rs:999</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <h2>Winter Collection</h2>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-1.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Cozy Stripe Half-Zip
-                                            Sweater</a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Warmth with a touch of style.</p>
-                                    <small class="product-price text-muted ms-auto">Rs. 2,499</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-2.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Los Angeles Retro
-                                            Sweatshirt</a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Classic comfort, city vibes.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto">Rs. 2,299</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-3.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Light Denim Jacket
-                                        </a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Everyday cool in denim.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto">Rs. 3,199</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-4.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Midnight Casual Jacket
-                                        </a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Lightweight, sleek, and versatile.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto"> Rs. 2,899</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-5.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Black Faux Leather Jacket
-                                        </a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Bold look. Timeless edge.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto">Rs. 4,499</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-6.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Puffer Winter Coat</a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Stay cozy through the cold.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto">Rs. 4,999</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-7.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Soft Grey Pullover
-                                        </a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Minimal look, maximum comfort.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto">Rs. 2,099</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-8.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Beige Knit Sweater</a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Simple. Warm. Stylish.</p>
-                                    <small class="product-price text-muted ms-auto">Rs. 2,299</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-9.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Navy Stripe Sweater</a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Classic stripes never fade.</p>
-                                    <small class="product-price text-muted ms-auto">Rs. 2,599</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-10.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Forest Green Sweater
-                                        </a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Inspired by nature, made for you.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto">Rs. 2,399</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-11.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Plaid Wool Shirt Jacket
-                                        </a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Cozy flannel feel, rugged look.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto">Rs. 3,299</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-12 mb-3">
-                        <div class="product-thumb">
-                            <a href="">
-                                <img src="Brand Images/products/winterCollection/product-12.jpg"
-                                    class="img-fluid product-image" alt="">
-                            </a>
-
-                            <div class="product-top d-flex">
-                                <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
-                            </div>
-
-                            <div class="product-info d-flex">
-                                <div>
-                                    <h5 class="product-title mb-0">
-                                        <a href="contact.html" class="product-title-link">Brown Knit Pullover</a>
-                                    </h5>
-
-                                    <p class="product-p">Tagline: Soft hues, timeless comfort.
-                                    </p>
-                                    <small class="product-price text-muted ms-auto">2,199</small>
-                                    <a href="" class="btn btn-outline-success">Buy Now</a>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
-        </section>
-
-
-    </main>
-
-    <footer class="site-footer">
-        <div class="container">
-            <div class="row">
-
-                <div class="col-lg-3 col-10 me-auto mb-4">
-                    <h4 class="text-white mb-3"><a href="index.html">Out</a>Strix</h4>
-                    <p class="copyright-text text-muted mt-lg-5 mb-4 mb-lg-0">Copyright © 2025 <strong>OutStrix
-                        </strong></p>
-                    <br>
-                    <p class="copyright-text">Designed by <a href="index.html" target="_blank">OutStrix</a></p>
-                </div>
-
-                <div class="col-lg-5 col-8">
-                    <h5 class="text-white mb-3">Sitemap</h5>
-
-                    <ul class="footer-menu d-flex flex-wrap">
-                        <li class="footer-menu-item"><a href="about.html" class="footer-menu-link">Story</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Products</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Privacy policy</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">FAQs</a></li>
-
-                        <li class="footer-menu-item"><a href="#" class="footer-menu-link">Contact</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-3 col-4">
-                    <h5 class="text-white mb-3">Social</h5>
-
-                    <ul class="social-icon">
-
-                        <li><a href="#" class="social-icon-link bi-youtube"></a></li>
-
-                        <li><a href="#" class="social-icon-link bi-whatsapp"></a></li>
-
-                        <li><a href="#" class="social-icon-link bi-instagram"></a></li>
-
-                        <li><a href="#" class="social-icon-link bi-skype"></a></li>
-                    </ul>
-                </div>
-
-            </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===========================
+       PRODUCTS SECTION (user-provided content)
+       I used your exact product HTML
+  ============================ -->
+  <section class="products section-padding">
+    <div class="container">
+      <div class="row">
+
+        <div class="col-12">
+          <h2 class="mb-5">New Arrivals</h2>
         </div>
-    </footer>
 
-    <!-- JAVASCRIPT FILES -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/bootstrap.bundle.min.js"></script>
-    <script src="js/Headroom.js"></script>
-    <script src="js/jQuery.headroom.js"></script>
-    <script src="js/slick.min.js"></script>
-    <script src="js/custom.js"></script>
+        <!-- Product cards (exact content you provided) -->
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/newArrival/product-1.jpg" class="img-fluid product-image" alt="">
+            </a>
 
+            <div class="product-top d-flex">
+              <span class="product-alert me-auto">Discounted Price</span>
+              <a href="#" class="bi-heart-fill product-icon"></a>
+            </div>
+
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0">
+                  <a href="contact.html" class="product-title-link"> Black-White Tee</a>
+                </h5>
+                <p class="product-p">Classic two-tone style for everyday wear.</p>
+                <small class="product-price text-muted ms-auto">Rs:1599</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- product 2 -->
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/newArrival/product-2.jpg" class="img-fluid product-image" alt="">
+            </a>
+
+            <div class="product-top d-flex">
+              <span class="product-alert">Discounted Price</span>
+              <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
+            </div>
+
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0">
+                  <a href="contact.html" class="product-title-link">Brown Oversized Tee</a>
+                </h5>
+                <p class="product-p">Soft, warm tone with relaxed comfort.</p>
+                <small class="product-price text-muted ms-auto">Rs:1399</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- product 3 -->
+        <div class="col-lg-4 col-12">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/newArrival/product-3.jpg" class="img-fluid product-image" alt="">
+            </a>
+
+            <div class="product-top d-flex">
+              <span class="product-alert me-auto">Discounted Price</span>
+              <a href="#" class="bi-heart-fill product-icon"></a>
+            </div>
+
+            <div class="product-top d-flex">
+              <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
+            </div>
+
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0">
+                  <a href="contact.html" class="product-title-link">Core Minimal Drop</a>
+                </h5>
+                <p class="product-p">Essential minimal piece for any outfit.</p>
+                <small class="product-price text-muted ms-auto">Rs:1199</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- product 4 -->
+        <div class="col-lg-4 col-12">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/newArrival/product-4.jpg" class="img-fluid product-image" alt="">
+            </a>
+
+            <div class="product-top d-flex">
+              <span class="product-alert me-auto">Discounted Price</span>
+              <a href="#" class="bi-heart-fill product-icon"></a>
+            </div>
+
+            <div class="product-top d-flex">
+              <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
+            </div>
+
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0">
+                  <a href="contact.html" class="product-title-link">Checked Layer Tee</a>
+                </h5>
+                <p class="product-p">Street-inspired look with inner-shirt style.</p>
+                <small class="product-price text-muted ms-auto">Rs:1599</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- product 5 -->
+        <div class="col-lg-4 col-12">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/newArrival/product-5.jpg" class="img-fluid product-image" alt="">
+            </a>
+
+            <div class="product-top d-flex">
+              <span class="product-alert me-auto">Discounted Price</span>
+              <a href="#" class="bi-heart-fill product-icon"></a>
+            </div>
+
+            <div class="product-top d-flex">
+              <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
+            </div>
+
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0">
+                  <a href="contact.html" class="product-title-link">Olive Drop Tee</a>
+                </h5>
+                <p class="product-p">Casual outdoor vibe with layered sleeves.</p>
+                <small class="product-price text-muted ms-auto">Rs:1299</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- product 6 -->
+        <div class="col-lg-4 col-12">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/newArrival/product-6.jpg" class="img-fluid product-image" alt="">
+            </a>
+
+            <div class="product-top d-flex">
+              <span class="product-alert me-auto">Discounted Price</span>
+              <a href="#" class="bi-heart-fill product-icon"></a>
+            </div>
+
+            <div class="product-top d-flex">
+              <a href="#" class="bi-heart-fill product-icon ms-auto"></a>
+            </div>
+
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0">
+                  <a href="contact.html" class="product-title-link">Sky Blue Tee</a>
+                </h5>
+                <p class="product-p">Cool and calm shade for a fresh look.</p>
+                <small class="product-price text-muted ms-auto">Rs:1099</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popular Header -->
+        <div class="col-12">
+          <h2 class="mb-5">Popular</h2>
+        </div>
+
+        <!-- Popular items (kept) -->
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/popular/product-1.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Classic Black Tee</a></h5>
+                <p class="product-p">Premium Quality Everyday Wear</p>
+                <small class="product-price text-muted ms-auto">Rs:1199</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/popular/product-2.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Sports Jersey Tee</a></h5>
+                <p class="product-p">Athletic Style • Lightweight & Comfortable</p>
+                <small class="product-price text-muted ms-auto">Rs:1099</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/popular/product-3.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Bold Letter Black Tee</a></h5>
+                <p class="product-p">Streetwear Look With Modern Fit</p>
+                <small class="product-price text-muted ms-auto">Rs:1599</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- more popular items -->
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/popular/product-4.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Olive Retro Tee</a></h5>
+                <p class="product-p">Vintage Design • Soft Fabric</p>
+                <small class="product-price text-muted ms-auto">Rs:1499</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/popular/product-5.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Dual Shade Raglan Tee </a></h5>
+                <p class="product-p">Contrast Sleeves • Sporty Casual Wear</p>
+                <small class="product-price text-muted ms-auto">Rs:1799</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="   ">
+              <img src="Brand Images/products/popular/product-6.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Pure White Essential Tee</a></h5>
+                <p class="product-p">Minimal Style • Soft & Breathable</p>
+                <small class="product-price text-muted ms-auto">Rs:1599</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Winter collection header -->
+        <div class="col-12">
+          <h2>Winter Collection</h2>
+        </div>
+
+        <!-- winter items (kept) -->
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-1.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Cozy Stripe Half-Zip Sweater</a></h5>
+                <p class="product-p">Tagline: Warmth with a touch of style.</p>
+                <small class="product-price text-muted ms-auto">Rs. 2,499</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-2.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Los Angeles Retro Sweatshirt</a></h5>
+                <p class="product-p">Tagline: Classic comfort, city vibes.</p>
+                <small class="product-price text-muted ms-auto">Rs. 2,299</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-3.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Light Denim Jacket</a></h5>
+                <p class="product-p">Tagline: Everyday cool in denim.</p>
+                <small class="product-price text-muted ms-auto">Rs. 3,199</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- rest of winter items -->
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-4.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Midnight Casual Jacket</a></h5>
+                <p class="product-p">Tagline: Lightweight, sleek, and versatile.</p>
+                <small class="product-price text-muted ms-auto"> Rs. 2,899</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-5.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Black Faux Leather Jacket</a></h5>
+                <p class="product-p">Tagline: Bold look. Timeless edge.</p>
+                <small class="product-price text-muted ms-auto">Rs. 4,499</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-6.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Puffer Winter Coat</a></h5>
+                <p class="product-p">Tagline: Stay cozy through the cold.</p>
+                <small class="product-price text-muted ms-auto">Rs. 4,999</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-7.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Soft Grey Pullover</a></h5>
+                <p class="product-p">Tagline: Minimal look, maximum comfort.</p>
+                <small class="product-price text-muted ms-auto">Rs. 2,099</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-8.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Beige Knit Sweater</a></h5>
+                <p class="product-p">Tagline: Simple. Warm. Stylish.</p>
+                <small class="product-price text-muted ms-auto">Rs. 2,299</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-9.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Navy Stripe Sweater</a></h5>
+                <p class="product-p">Tagline: Classic stripes never fade.</p>
+                <small class="product-price text-muted ms-auto">Rs. 2,599</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-10.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Forest Green Sweater</a></h5>
+                <p class="product-p">Tagline: Inspired by nature, made for you.</p>
+                <small class="product-price text-muted ms-auto">Rs. 2,399</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-11.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Plaid Wool Shirt Jacket</a></h5>
+                <p class="product-p">Tagline: Cozy flannel feel, rugged look.</p>
+                <small class="product-price text-muted ms-auto">Rs. 3,299</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4 col-12 mb-3">
+          <div class="product-thumb">
+            <a href="">
+              <img src="Brand Images/products/winterCollection/product-12.jpg" class="img-fluid product-image" alt="">
+            </a>
+            <div class="product-top d-flex"><a href="#" class="bi-heart-fill product-icon ms-auto"></a></div>
+            <div class="product-info d-flex">
+              <div>
+                <h5 class="product-title mb-0"><a href="contact.html" class="product-title-link">Brown Knit Pullover</a></h5>
+                <p class="product-p">Tagline: Soft hues, timeless comfort.</p>
+                <small class="product-price text-muted ms-auto">2,199</small>
+                <a href="#" class="btn btn-outline-success add-to-cart">Add to cart</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- row -->
+    </div> <!-- container -->
+  </section>
+
+  <!-- =========================
+       Floating Cart Button
+       ========================= -->
+  <div id="cartFab" class="cart-fab" aria-label="Open cart">
+    <svg width="18" height="18" viewBox="0 0 16 16" fill="none" style="vertical-align:middle" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 1h2l1.6 9.59A2 2 0 0 0 5.6 13H13a2 2 0 0 0 2-1.72L16 4H4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span id="cartFabText">Cart</span>
+    <span id="cartCount" class="cart-count">0</span>
+  </div>
+
+  <!-- =========================
+       Cart Drawer & Checkout UI
+       ========================= -->
+  <aside id="cartDrawer" class="cart-drawer" aria-hidden="true">
+    <div class="cart-header">
+      <h5 style="margin:0">Your Cart (<span id="drawerCount">0</span>)</h5>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="clearCartBtn" class="btn btn-sm btn-outline-secondary">Clear</button>
+        <button id="closeCart" class="btn btn-sm btn-outline-secondary">Close</button>
+      </div>
+    </div>
+
+    <div class="cart-body" id="cartBody">
+      <!-- Items will be injected here -->
+      <div id="cartItemsWrap"></div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="empty" style="display:none">
+        <p>No items in cart yet.</p>
+        <p class="small-muted">Click "Add to cart" on any product to start.</p>
+      </div>
+
+      <!-- Checkout Steps -->
+      <div id="checkoutSteps" style="display:none; margin-top:12px">
+        <!-- Step 1: Shipping -->
+        <div id="stepShipping" class="step active">
+          <h6>Shipping Details</h6>
+          <div class="field"><input id="shipName" placeholder="Full name" /></div>
+          <div class="field"><input id="shipPhone" placeholder="Phone number" /></div>
+          <div class="field"><textarea id="shipAddress" placeholder="Full address" rows="2"></textarea></div>
+          <div style="display:flex;gap:8px">
+            <button id="shippingNext" class="btn btn-success" style="flex:1">Next: Payment</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Payment -->
+        <div id="stepPayment" class="step">
+          <h6>Payment</h6>
+          <div class="field">
+            <select id="paymentMethod">
+              <option value="COD">Cash on Delivery</option>
+              <option value="Card">Credit/Debit Card (test)</option>
+            </select>
+          </div>
+          <div id="cardFields" style="display:none">
+            <div class="field"><input id="cardName" placeholder="Name on card" /></div>
+            <div class="field"><input id="cardNumber" placeholder="Card number" /></div>
+            <div class="field" style="display:flex;gap:8px"><input id="cardExp" placeholder="MM/YY" /><input id="cardCVC" placeholder="CVC" /></div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <button id="paymentBack" class="btn btn-outline-secondary" style="flex:1">Back</button>
+            <button id="paymentNext" class="btn btn-success" style="flex:1">Next: Review</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Review -->
+        <div id="stepReview" class="step">
+          <h6>Review</h6>
+          <div style="margin-bottom:10px">
+            <strong>Shipping:</strong>
+            <div id="revShipping" class="small-muted"></div>
+          </div>
+          <div style="margin-bottom:10px">
+            <strong>Payment:</strong>
+            <div id="revPayment" class="small-muted"></div>
+          </div>
+          <div style="margin-bottom:10px">
+            <strong>Items:</strong>
+            <div id="revItems" class="small-muted"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="reviewBack" class="btn btn-outline-secondary" style="flex:1">Back</button>
+            <button id="placeOrderBtn" class="btn btn-success" style="flex:1">Place Order</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="cart-footer">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div class="small-muted">Subtotal</div>
+        <div><strong id="subtotalAmt">Rs. 0</strong></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="continueShopping" class="btn btn-outline-secondary" style="flex:1">Continue Shopping</button>
+        <button id="checkoutStart" class="btn btn-success" style="flex:1">Checkout</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Order confirmation modal (simple) -->
+  <div id="orderConfirm" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1400; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:20px; border-radius:10px; width:360px; max-width:90%;">
+      <h5>Thank you!</h5>
+      <p id="orderMsg">Your order has been placed.</p>
+      <div style="text-align:right"><button id="closeOrderMsg" class="btn btn-success">OK</button></div>
+    </div>
+  </div>
+
+  <!-- Keep original JS files if you have them -->
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.bundle.min.js"></script>
+
+  <script>
+  /***********************
+   Cart & Checkout Logic
+  ************************/
+  (function() {
+    // Utilities
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+    const parsePrice = txt => {
+      if (!txt) return 0;
+      // Keep only digits
+      const digits = txt.replace(/[^\d]/g, '');
+      return digits ? parseInt(digits, 10) : 0;
+    };
+    const formatPrice = n => {
+      // format with comma thousands, e.g. 2499 -> "Rs. 2,499"
+      return 'Rs. ' + n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
+
+    // Elements
+    const cartFab = document.getElementById('cartFab');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartItemsWrap = document.getElementById('cartItemsWrap');
+    const cartCount = document.getElementById('cartCount');
+    const drawerCount = document.getElementById('drawerCount');
+    const headerCount = document.getElementById('headerCount');
+    const subtotalAmt = document.getElementById('subtotalAmt');
+    const emptyState = document.getElementById('emptyState');
+
+    const checkoutSteps = document.getElementById('checkoutSteps');
+    const stepShipping = document.getElementById('stepShipping');
+    const stepPayment = document.getElementById('stepPayment');
+    const stepReview = document.getElementById('stepReview');
+
+    const paymentMethod = document.getElementById('paymentMethod');
+    const cardFields = document.getElementById('cardFields');
+
+    const revShipping = document.getElementById('revShipping');
+    const revPayment = document.getElementById('revPayment');
+    const revItems = document.getElementById('revItems');
+
+    // Cart state in localStorage
+    const CART_KEY = 'outstrix_cart_v1';
+    let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+
+    // Update counts and UI
+    function saveCart() {
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      renderCart();
+    }
+
+    function getTotalQuantity() {
+      return cart.reduce((s,i) => s + i.qty, 0);
+    }
+    function getSubtotal() {
+      return cart.reduce((s,i) => s + (i.price * i.qty), 0);
+    }
+
+    function renderCart() {
+      cartItemsWrap.innerHTML = '';
+      const qty = getTotalQuantity();
+      cartCount.innerText = qty;
+      drawerCount.innerText = qty;
+      headerCount.innerText = qty;
+
+      if (cart.length === 0) {
+        emptyState.style.display = 'block';
+        checkoutSteps.style.display = 'none';
+      } else {
+        emptyState.style.display = 'none';
+        checkoutSteps.style.display = 'none'; // steps hidden until user clicks Checkout
+      }
+
+      if (cart.length === 0) {
+        subtotalAmt.innerText = formatPrice(0);
+        return;
+      }
+
+      // render items
+      cart.forEach((item, idx) => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'cart-item';
+        itemEl.innerHTML = `
+          <img src="${item.image || ''}" alt="${escapeHtml(item.name)}">
+          <div class="meta">
+            <h6>${escapeHtml(item.name)}</h6>
+            <small class="small-muted">${formatPrice(item.price)} • <span id="itemQty${idx}">Qty: ${item.qty}</span></small>
+          </div>
+          <div style="text-align:right">
+            <div class="qty-controls" style="margin-bottom:6px">
+              <button data-action="dec" data-idx="${idx}">−</button>
+              <button data-action="inc" data-idx="${idx}">+</button>
+            </div>
+            <div style="font-weight:700">${formatPrice(item.price * item.qty)}</div>
+            <div style="margin-top:6px"><button data-action="remove" data-idx="${idx}" class="btn btn-sm btn-outline-secondary">Remove</button></div>
+          </div>
+        `;
+        cartItemsWrap.appendChild(itemEl);
+      });
+
+      subtotalAmt.innerText = formatPrice(getSubtotal());
+    }
+
+    // escape helper
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+    }
+
+    // add item
+    function addToCart(product) {
+      // check existing by id or name
+      const existing = cart.find(i => i.id === product.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...product, qty: 1 });
+      }
+      saveCart();
+      openCart(); // open drawer on add
+    }
+
+    // remove / change qty
+    function changeQty(idx, delta) {
+      if (!cart[idx]) return;
+      cart[idx].qty += delta;
+      if (cart[idx].qty <= 0) {
+        cart.splice(idx, 1);
+      }
+      saveCart();
+    }
+    function removeItem(idx) {
+      if (!cart[idx]) return;
+      cart.splice(idx,1);
+      saveCart();
+    }
+
+    // find product details from product card when "Add to cart" clicked
+    function productDataFromButton(btn) {
+      const productThumb = btn.closest('.product-thumb');
+      if (!productThumb) return null;
+      const imgEl = productThumb.querySelector('img.product-image');
+      const titleEl = productThumb.querySelector('.product-title-link');
+      const priceEl = productThumb.querySelector('.product-price');
+      const name = (titleEl && titleEl.innerText.trim()) || (productThumb.querySelector('.product-title') && productThumb.querySelector('.product-title').innerText.trim()) || 'Product';
+      const priceText = priceEl ? priceEl.innerText.trim() : '';
+      const price = parsePrice(priceText);
+      // generate simple id using name + price (safe for this demo)
+      const id = (name + '|' + price).replace(/\s+/g,'_').toLowerCase();
+      const image = imgEl ? imgEl.getAttribute('src') : '';
+      return { id, name, price, image };
+    }
+
+    // Open / Close drawer
+    function openCart() {
+      cartDrawer.classList.add('open');
+      cartDrawer.setAttribute('aria-hidden','false');
+      renderCart();
+    }
+    function closeCart() {
+      cartDrawer.classList.remove('open');
+      cartDrawer.setAttribute('aria-hidden','true');
+    }
+
+    // Event wiring
+    // 1) Add to cart buttons
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.add-to-cart');
+      if (btn) {
+        e.preventDefault();
+        const prod = productDataFromButton(btn);
+        if (prod) addToCart(prod);
+      }
+    });
+
+    // 2) Floating FAB & header cart
+    cartFab.addEventListener('click', openCart);
+    document.getElementById('openCartHeader').addEventListener('click', openCart);
+
+    // 3) Close & clear
+    document.getElementById('closeCart').addEventListener('click', closeCart);
+    document.getElementById('continueShopping').addEventListener('click', closeCart);
+    document.getElementById('clearCartBtn').addEventListener('click', function(){
+      if (!confirm('Clear all items from cart?')) return;
+      cart = [];
+      saveCart();
+    });
+
+    // 4) Delegate cart item controls (inc/dec/remove)
+    cartItemsWrap.addEventListener('click', function(e) {
+      const actionBtn = e.target.closest('button[data-action]');
+      if (!actionBtn) return;
+      const idx = parseInt(actionBtn.dataset.idx,10);
+      const action = actionBtn.dataset.action;
+      if (action === 'inc') changeQty(idx, +1);
+      if (action === 'dec') changeQty(idx, -1);
+      if (action === 'remove') removeItem(idx);
+    });
+
+    // 5) Checkout flow buttons
+    const checkoutStart = document.getElementById('checkoutStart');
+    checkoutStart.addEventListener('click', function(){
+      if (cart.length === 0) {
+        alert('Your cart is empty.');
+        return;
+      }
+      // show first step
+      checkoutSteps.style.display = 'block';
+      showStep('shipping');
+    });
+
+    function showStep(which) {
+      // hide all
+      [stepShipping, stepPayment, stepReview].forEach(s => s.classList.remove('active'));
+      if (which === 'shipping') stepShipping.classList.add('active');
+      if (which === 'payment') stepPayment.classList.add('active');
+      if (which === 'review') stepReview.classList.add('active');
+    }
+
+    // shipping next
+    document.getElementById('shippingNext').addEventListener('click', function(){
+      // basic validations
+      const name = document.getElementById('shipName').value.trim();
+      const phone = document.getElementById('shipPhone').value.trim();
+      const addr = document.getElementById('shipAddress').value.trim();
+      if (!name || !phone || !addr) {
+        alert('Please fill shipping name, phone and address.');
+        return;
+      }
+      showStep('payment');
+    });
+
+    // payment method toggle
+    paymentMethod.addEventListener('change', function(){
+      cardFields.style.display = paymentMethod.value === 'Card' ? 'block' : 'none';
+    });
+    document.getElementById('paymentBack').addEventListener('click', function(){ showStep('shipping'); });
+
+    document.getElementById('paymentNext').addEventListener('click', function(){
+      if (paymentMethod.value === 'Card') {
+        // very light validation for demo
+        const cn = document.getElementById('cardNumber').value.trim();
+        if (!cn || cn.length < 12) {
+          alert('Enter a valid card number (test).');
+          return;
+        }
+      }
+      // prepare review content
+      const name = document.getElementById('shipName').value.trim();
+      const phone = document.getElementById('shipPhone').value.trim();
+      const addr = document.getElementById('shipAddress').value.trim();
+      revShipping.innerHTML = `${escapeHtml(name)} • ${escapeHtml(phone)}<br>${escapeHtml(addr)}`;
+      revPayment.innerText = paymentMethod.value === 'COD' ? 'Cash on Delivery' : 'Card (' + (document.getElementById('cardNumber').value.slice(-4) || '') + ')';
+
+      // items list
+      revItems.innerHTML = cart.map(i => `${escapeHtml(i.name)} × ${i.qty} — ${formatPrice(i.price * i.qty)}`).join('<br>');
+      showStep('review');
+    });
+
+    document.getElementById('reviewBack').addEventListener('click', function(){ showStep('payment'); });
+
+    // Place order
+    document.getElementById('placeOrderBtn').addEventListener('click', function(){
+      // Compose order object (demo)
+      const order = {
+        id: 'ORD' + Date.now(),
+        items: cart,
+        subtotal: getSubtotal(),
+        shipping: {
+          name: document.getElementById('shipName').value.trim(),
+          phone: document.getElementById('shipPhone').value.trim(),
+          address: document.getElementById('shipAddress').value.trim()
+        },
+        payment: paymentMethod.value,
+        createdAt: new Date().toISOString()
+      };
+
+      // For demo: show confirmation and clear cart
+      document.getElementById('orderMsg').innerHTML = `Order <strong>${order.id}</strong> confirmed.<br>Subtotal: <strong>${formatPrice(order.subtotal)}</strong>`;
+      document.getElementById('orderConfirm').style.display = 'flex';
+      cart = []; saveCart();
+      checkoutSteps.style.display = 'none';
+      // In real app: send "order" to backend via fetch/XHR
+    });
+
+    document.getElementById('closeOrderMsg').addEventListener('click', function(){
+      document.getElementById('orderConfirm').style.display = 'none';
+      closeCart();
+      // reset shipping inputs
+      ['shipName','shipPhone','shipAddress','cardName','cardNumber','cardExp','cardCVC'].forEach(id=>{
+        const el = document.getElementById(id); if(el) el.value = '';
+      });
+      paymentMethod.value = 'COD'; cardFields.style.display = 'none';
+    });
+
+    // Utility initial rendering
+    renderCart();
+
+    // Close drawer if clicked outside (optional)
+    window.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeCart(); });
+
+    // Prevent default on add-to-cart anchor clicks
+    document.addEventListener('click', function(e){
+      const a = e.target.closest('a.add-to-cart');
+      if (a) e.preventDefault();
+    });
+
+    // initial ensure header button count
+    headerCount.innerText = getTotalQuantity();
+
+    // Expose for debugging (optional)
+    window._cart = {
+      get: () => cart,
+      add: p => { addToCart(p); },
+      clear: () => { cart = []; saveCart(); }
+    };
+
+  })();
+  </script>
 </body>
-
 </html>
